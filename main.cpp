@@ -1,90 +1,130 @@
 #include <iostream>
+#include <cstdlib>
 #include <string>
 #include <ctime>
-
-#define LOG(x) cout << x << endl
+#include <array>
+#include <map>
 
 using std::cout;
 using std::cin;
 using std::endl;
 using std::string;
 
-const int width = 35;
+
 string playerChoice;
 string botChoice;
-string winMessage;
-bool playerIsChoicset;
+string writeMessage;
 
+std::map<string, string> winCondition =
+{
+	{"Rock", "Scissor"},
+	{"Paper", "Rock"},
+	{"Scissor", "Paper"}
+};
+
+struct Options
+{
+	static const char Quit = 'q';
+	static const char Rock = 'r';
+	static const char Paper = 'p';
+	static const char Scissors = 's';
+};
 
 void Draw()
 {
 	system("cls");
+	const int BORDER_WIDTH = 35;
+	const string BORDER_CHAR = "\xB2";
 
-	for (int i = 0; i < width; i++)
-		cout << "\xB2";
+	for (int i = 0; i < BORDER_WIDTH; i++)
+	{
+		cout << BORDER_CHAR;
+	}
 	cout << endl;
 	cout << endl;
 	
 	cout << "Enter one of the letters to choice:" << endl;
 	cout << "Enter (R) for Rock." << endl;
 	cout << "Enter (p) for Paper." << endl;
-	cout << "Enter (S) for Scissors." << endl;
+	cout << "Enter (S) for Scissor." << endl;
 
-	if (playerIsChoicset)
+	if (!playerChoice.empty() && !botChoice.empty())
 	{
 		cout << endl;
 		cout << "You choicest: " << playerChoice << endl;
 		cout << "Bot choicest: " << botChoice << endl;
 		cout << endl;
 		
-		cout << winMessage << endl;
+		cout << writeMessage << endl;
 	}
 
 	cout << endl;	
-	for (int i = 0; i < width; i++)
-		cout << "\xB2";
+	for (int i = 0; i < BORDER_WIDTH; i++)
+	{
+		cout << BORDER_CHAR;
+ 	}
 	cout << endl;
 
-	if (playerIsChoicset)
+	if (!playerChoice.empty() && !botChoice.empty())
+	{
 		cout << "Enter (Q) to quit game or play again: ";
+	}
 }
 
 
-void CheckForUserChoice(string object);
 void Input()
 {
+	const string windowsAlertSound = "\x07";
 	char userInput;
+
 	cin >> userInput;
+	userInput = (char)std::tolower(userInput);
 
-	if (userInput == 'q' || userInput == 'Q')
-		playerIsChoicset = false;
+	if (userInput == Options::Quit)
+	{
+		exit(EXIT_SUCCESS);
+	}
 
-	if (userInput == 'R' || userInput == 'r')
-		CheckForUserChoice("Rock");
-	else if (userInput == 'P' || userInput == 'p')
-		CheckForUserChoice("Paper");
-	else if (userInput == 'S' || userInput == 's')
-		CheckForUserChoice("Scissors");
+	if (userInput == Options::Rock)
+		playerChoice = "Rock";
+	else if (userInput == Options::Paper)
+		playerChoice = "Paper";
+	else if (userInput == Options::Scissors)
+		playerChoice = "Scissor";
 	else
-		cout << "\x07";
+		if(userInput != Options::Quit)
+			cout << windowsAlertSound;
 }
 
+string GenrateRandomChoice(const std::array<string, 3>& choices);
+int compareOptions(string& option1, string& option2);
 void Logic()
 {
-	if (playerChoice == "Rock" && botChoice == "Scissors")
-		winMessage = "You Win!";
-	else if (playerChoice == "Rock" && botChoice == "Paper")
-		winMessage = "You Lose!";
-	else if (playerChoice == "Paper" && botChoice == "Rock")
-		winMessage = "You Win!";
-	else if (playerChoice == "Paper" && botChoice == "Scissors")
-		winMessage = "You lose!";
-	else if (playerChoice == "Scissors" && botChoice == "Rock")
-		winMessage = "You lose!";
-	else if (playerChoice == "Scissors" && botChoice == "Paper")
-		winMessage = "You Win!";
+	const std::array<string, 3> CHOICES = { "Rock", "Paper", "Scissor" };
+	botChoice = GenrateRandomChoice(CHOICES);
+
+	int winner = compareOptions(playerChoice, botChoice);
+
+	if (winner == 1)
+		writeMessage = "You Win!";
+	else if (winner == -1)
+		writeMessage = "You Lose";
 	else
-		winMessage = "Nobody wins it's a Tie!";
+		writeMessage = "It's a Tie";
+
+}
+
+string GenrateRandomChoice(const std::array<string, 3>& choices)
+{
+	return choices[rand() % 3];
+}
+
+int compareOptions(string& option1, string& option2)
+{
+	if (option1 == option2)
+		return 0;
+
+	return option2 == winCondition[option1] ? 1 : -1;
 }
 
 void Run()
@@ -92,37 +132,15 @@ void Run()
 	Draw();
 	Input();
 	Logic();
-	Draw();
 }
 
 
 int main()
 {
 	srand(time(NULL));
-	
-	Run();
 
-	while (playerIsChoicset != false)
+	while (true)
 	{
 		Run();
 	}
-}
-
-void GenrateRandomChoice()
-{
-	int random = rand() % 3;
-
-	if (random == 0)
-		botChoice = "Rock";
-	else if (random == 1)
-		botChoice = "Paper";
-	else
-		botChoice = "Scissors";
-}
-
-void CheckForUserChoice(string object)
-{
-	playerChoice = object;
-	playerIsChoicset = true;
-	GenrateRandomChoice();
 }
